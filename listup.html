@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script type="module">
+      import { fetchTest, fetchBookList } from './search.js';
+      window.addEventListener('DOMContentLoaded', async () => {
+        console.log(await fetchBookList());
+
+        const bookIconTamplate = `
+        
+        `;
+      });
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
+    />
+    <style>
+      .card-image img {
+        object-fit: contain;
+      }
+      .cell {
+        max-width: 18rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bookList" class="grid is-col-min-8">
+      <article class="cell card">
+        <div class="card-image">
+          <figure class="image is-4by3">
+            <img
+              src="https://ndlsearch.ndl.go.jp/thumbnail/9784501540104.jpg"
+              alt="オントロジ技術入門 : ウェブオントロジとOWL 書影"
+            />
+          </figure>
+        </div>
+        <div class="card-content">
+          <p class="title is-5">オントロジ技術入門 : ウェブオントロジとOWL</p>
+          <p class="subtitle is-6">AIDOS 編著</p>
+          <div class="content is-size-7">
+            <a href="http://">#オントロジー (情報科学)</a>
+            <a href="http://">#セマンティックウェブ</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </body>
+</html>
