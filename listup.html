@@ -5,13 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script type="module">
-      import { fetchTest, fetchBookList } from './search.js';
+      import { serach, fetchSubjectList } from './src/search.js';
+      const defaultSerachQuery = `SELECT DISTINCT ?book WHERE { }`;
       window.addEventListener('DOMContentLoaded', async () => {
-        console.log(await fetchBookList());
+        console.log();
 
-        const bookIconTamplate = `
-        
-        `;
+        //^^^^^^^^^^^^^^^^^^^
+        const select = document.createElement('select');
+        const subjectList = await fetchSubjectList();
+        subjectList.forEach((value, key) => {
+          const option = document.createElement('option');
+          option.value = key; // Set the key as the value
+          option.textContent = value; // Use the value as the display text
+          select.appendChild(option);
+        });
+        const subjectSelectArea = document.getElementById('subjectSelectArea');
+
+        // Append the select element to the div
+        if (subjectSelectArea) {
+          subjectSelectArea.appendChild(select);
+        } else {
+          console.error('Element with id "subjectSelectArea" not found');
+        }
+        //------------------
+        document.getElementById('searchQuery').value = defaultSerachQuery;
+        document
+          .getElementById('searchButton')
+          .addEventListener('click', () => {
+            const serachQuery = document.getElementById('searchQuery').value;
+            console.log(serachQuery);
+            serach(serachQuery);
+          });
       });
     </script>
     <link
@@ -19,8 +43,14 @@
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
     />
     <style>
+      main {
+        margin: 20px;
+      }
       .card-image img {
         object-fit: contain;
+      }
+      .card {
+        padding: 0.5rem;
       }
       .cell {
         max-width: 18rem;
@@ -28,25 +58,18 @@
     </style>
   </head>
   <body>
-    <div id="bookList" class="grid is-col-min-8">
-      <article class="cell card">
-        <div class="card-image">
-          <figure class="image is-4by3">
-            <img
-              src="https://ndlsearch.ndl.go.jp/thumbnail/9784501540104.jpg"
-              alt="オントロジ技術入門 : ウェブオントロジとOWL 書影"
-            />
-          </figure>
-        </div>
-        <div class="card-content">
-          <p class="title is-5">オントロジ技術入門 : ウェブオントロジとOWL</p>
-          <p class="subtitle is-6">AIDOS 編著</p>
-          <div class="content is-size-7">
-            <a href="http://">#オントロジー (情報科学)</a>
-            <a href="http://">#セマンティックウェブ</a>
-          </div>
-        </div>
-      </article>
-    </div>
+    <main>
+      <div>
+        <p>検索するとこ</p>
+        <div id="subjectSelectArea" class="select"></div>
+        <textarea
+          id="searchQuery"
+          class="textarea"
+          placeholder="検索クエリを入力してください。SELECTで?bookを指定してください"
+        ></textarea>
+        <button id="searchButton" class="button">検索</button>
+      </div>
+      <div id="bookList" class="grid is-col-min-11"></div>
+    </main>
   </body>
 </html>
