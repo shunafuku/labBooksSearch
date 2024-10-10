@@ -53,7 +53,7 @@ function createCardsHtml(books) {
       const bookIconTamplate = `
     <article class="cell card">
       <div class="card-image">
-        <figure class="image is-4by3">
+        <figure class="image is-4by3 is-skeleton">
           <img
             src="${bookImgUri}"
             alt="${
