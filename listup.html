@@ -20,7 +20,7 @@
         (() => {
           const option = document.createElement('option');
           option.value = ''; // Set the key as the value
-          option.textContent = ''; // Use the value as the display text
+          option.textContent = '主題で絞り込む'; // Use the value as the display text
           select.appendChild(option);
         })();
         subjectList.forEach((value, key) => {
@@ -45,6 +45,7 @@
           .addEventListener('change', (event) => {
             const selectedValue = event.target.value;
             if (selectedValue === '') {
+              document.getElementById('searchQuery').value = defaultSerachQuery;
             } else {
               console.log('選択された値:', selectedValue);
               console.log(`?book dcterms:subject <${selectedValue}> .`);
@@ -61,7 +62,20 @@
           .addEventListener('click', () => {
             const serachQuery = document.getElementById('searchQuery').value;
             console.log(serachQuery);
-            serach(serachQuery);
+            serach(serachQuery).then((res) => {
+              //skelton
+              const skeletonImages =
+                document.querySelectorAll('.image.is-skeleton');
+              skeletonImages.forEach((container) => {
+                const img = container.querySelector('img');
+                console.log(img);
+                if (img) {
+                  img.addEventListener('load', () => {
+                    container.classList.remove('is-skeleton');
+                  });
+                }
+              });
+            });
           });
       });
     </script>
@@ -88,6 +102,11 @@
     <main>
       <div>
         <p>検索するとこ</p>
+        <input
+          class="input is-rounded"
+          type="text"
+          placeholder="keyward検索（タイトルと著者の部分一致検索）"
+        />
         <div id="subjectSelectArea" class="select"></div>
         <textarea
           id="searchQuery"
