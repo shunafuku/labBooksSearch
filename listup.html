@@ -7,12 +7,22 @@
     <script type="module">
       import { serach, fetchSubjectList } from './src/search.js';
       const defaultSerachQuery = `SELECT DISTINCT ?book WHERE { }`;
+      const serachTemplateQuery = `SELECT DISTINCT ?book WHERE {%query%}`;
       window.addEventListener('DOMContentLoaded', async () => {
-        console.log();
+        //初期化
+        document.getElementById('searchQuery').value = defaultSerachQuery;
 
-        //^^^^^^^^^^^^^^^^^^^
-        const select = document.createElement('select');
+        //subjectのリストを、htmlのselectにしてdomに追加する^^^^^^^^^^^^^^^^^^^
+        //subjectのリストを取得
         const subjectList = await fetchSubjectList();
+        //htmlに変換
+        const select = document.createElement('select');
+        (() => {
+          const option = document.createElement('option');
+          option.value = ''; // Set the key as the value
+          option.textContent = ''; // Use the value as the display text
+          select.appendChild(option);
+        })();
         subjectList.forEach((value, key) => {
           const option = document.createElement('option');
           option.value = key; // Set the key as the value
@@ -28,7 +38,24 @@
           console.error('Element with id "subjectSelectArea" not found');
         }
         //------------------
-        document.getElementById('searchQuery').value = defaultSerachQuery;
+
+        //subjectlistからなにかが選択されたときの処理
+        subjectSelectArea
+          .querySelector('select')
+          .addEventListener('change', (event) => {
+            const selectedValue = event.target.value;
+            if (selectedValue === '') {
+            } else {
+              console.log('選択された値:', selectedValue);
+              console.log(`?book dcterms:subject <${selectedValue}> .`);
+              document.getElementById('searchQuery').value =
+                serachTemplateQuery.replace(
+                  '%query%',
+                  `?book dcterms:subject <${selectedValue}> .`
+                );
+            }
+          });
+        //検索時の処理
         document
           .getElementById('searchButton')
           .addEventListener('click', () => {
