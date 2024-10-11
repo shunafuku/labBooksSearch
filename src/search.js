@@ -50,10 +50,9 @@ function createCardsHtml(books) {
       const bookImgUri = `https://ndlsearch.ndl.go.jp/thumbnail/${value.get(
         'isbn'
       )}.jpg`;
-      const bookIconTamplate = `
-    <article class="cell card">
-      <div class="card-image">
-        <figure class="image is-4by3 is-skeleton">
+
+      const bookFigureTemplate = `
+      <figure class="image is-4by3 is-skeleton">
           <img
             src="${bookImgUri}"
             alt="${
@@ -63,6 +62,11 @@ function createCardsHtml(books) {
             }: 書影"
           />
         </figure>
+      `;
+      const bookCardTemplate = `
+    <article class="cell card">
+      <div class="card-image">
+        ${bookFigureTemplate}
       </div>
       <div class="card-content">
         <p class="title is-5">${
@@ -73,14 +77,14 @@ function createCardsHtml(books) {
           ${Array.from(value.get('subjects'))
             .map(
               ([iri, label]) =>
-                `<a href="${iri}" target="_blank" rel="noopener noreferrer">#${label}</a>`
+                `<a href="${iri}" target="_blank" rel="noopener noreferrer"><span class="tag">${label}</span></a>`
             )
-            .join(', ')}
+            .join('')}
         </div>
       </div>
     </article>
   `;
-      return bookIconTamplate;
+      return bookCardTemplate;
     })
     .join('');
   return articles;
