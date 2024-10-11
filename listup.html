@@ -39,6 +39,10 @@
         }
         //------------------
 
+        // sparql生成のためのオブジェクト(詳細検索)
+
+        // keyword, subjectlist
+
         //subjectlistからなにかが選択されたときの処理
         subjectSelectArea
           .querySelector('select')
@@ -56,7 +60,7 @@
                 );
             }
           });
-        //検索時の処理
+        //詳細検索時の処理
         document
           .getElementById('searchButton')
           .addEventListener('click', () => {
@@ -76,6 +80,12 @@
                 }
               });
             });
+          });
+        //
+        document
+          .getElementById('searchKeywardButton')
+          .addEventListener('click', () => {
+            //keywardの取得
           });
       });
     </script>
@@ -101,21 +111,54 @@
   <body>
     <main>
       <div>
-        <p>検索するとこ</p>
-        <input
-          class="input is-rounded"
-          type="text"
-          placeholder="keyward検索（タイトルと著者の部分一致検索）"
-        />
-        <div id="subjectSelectArea" class="select"></div>
-        <textarea
-          id="searchQuery"
-          class="textarea"
-          placeholder="検索クエリを入力してください。SELECTで?bookを指定してください"
-        ></textarea>
-        <button id="searchButton" class="button">検索</button>
+        <div class="columns is-mobile">
+          <div class="column is-four-fifths">is-four-fifths</div>
+          <div class="column">Auto</div>
+          <div class="column">Auto</div>
+        </div>
+        <div class="columns is-mobile">
+          <div class="column is-9 is-offset-1">
+            <input
+              class="input is-rounded"
+              type="text"
+              placeholder="keyward検索（タイトルと著者の部分一致検索）"
+            />
+          </div>
+          <div class="column">
+            <button id="searchKeywardButton" class="button">検索</button>
+          </div>
+        </div>
+
+        <div style="overflow: visible"></div>
+        <details style="overflow: visible; height: auto">
+          <summary>詳細検索</summary>
+          <div class="columns is-mobile">
+            <div class="column is-four-fifths">
+              <div id="subjectSelectArea" class="select"></div>
+            </div>
+          </div>
+          <div class="columns is-mobile">
+            <div class="column">
+              <button id="searchButton" class="button">検索</button>
+            </div>
+          </div>
+        </details>
+        <div>
+          <details>
+            <summary>sparql検索</summary>
+            <textarea
+              id="searchQuery"
+              class="textarea"
+              placeholder="検索クエリを入力してください。SELECTで?bookを指定してください"
+            ></textarea>
+          </details>
+        </div>
       </div>
-      <div id="bookList" class="grid is-col-min-11"></div>
+      <!-- 検索結果 -->
+      <div id="serachResult">
+        <div>hoghoge</div>
+        <div id="bookList" class="grid is-col-min-11"></div>
+      </div>
     </main>
   </body>
 </html>
