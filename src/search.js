@@ -8,7 +8,7 @@ async function fetchTest() {
 }
 
 async function fetchBookList(serachQuery) {
-  const endpointUrl = `https://lod.hozo.jp/fuseki/labBook/sparql`;
+  const endpointUrl = `http://lod.hozo.jp/fuseki/labBook/sparql`;
 
   const query = `
     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -20,8 +20,8 @@ async function fetchBookList(serachQuery) {
     SELECT DISTINCT ?book ?isbn ?title ?creators ?subject ?subjectLabel WHERE {
       {
         SELECT DISTINCT ?book (group_concat(distinct ?creator ; separator = ", ") AS ?creators) WHERE {
-          #BIND(<https://hozo.jp/books/entity/9784501540104/1> as ?book)
-          ?book rdfs:subClassOf <https://hozo.jp/books/class/book> .
+          #BIND(<http://hozo.jp/books/entity/9784501540104/1> as ?book)
+          ?book rdfs:subClassOf <http://hozo.jp/books/class/book> .
           {
             ${serachQuery}
           }
@@ -47,14 +47,14 @@ async function fetchBookList(serachQuery) {
 function createCardsHtml(books) {
   const articles = Array.from(books)
     .map(([key, value]) => {
-      const bookImgUri = `https://ndlsearch.ndl.go.jp/thumbnail/${value.get(
+      const bookImgUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${value.get(
         'isbn'
       )}.jpg`;
 
       const bookFigureTemplate = `
       <figure class="image is-4by3 is-skeleton">
           <img
-            src="${bookImgUri}"
+            src="${bookImgUrl}"
             alt="${
               value.get('title') == ''
                 ? value.get('title')
@@ -137,6 +137,9 @@ async function serach(serachQuery) {
     console.log(books);
 
     //htmlを生成し、domに書き込み
+    document.getElementById(
+      'searchResNum'
+    ).innerHTML = `<p>取得件数：${books.size}</p>`;
     const articles = createCardsHtml(books);
     console.log('start write');
     document.getElementById('bookList').innerHTML = articles;
@@ -155,7 +158,7 @@ async function fetchSubjectList() {
     SELECT ?subject ?subjectLabel WHERE{
       {
         SELECT DISTINCT ?subject ?subjectLabel (COUNT(?subject) as ?c) WHERE {
-          ?book rdfs:subClassOf <https://hozo.jp/books/class/book> .
+          ?book rdfs:subClassOf <http://hozo.jp/books/class/book> .
           ?book dcterms:subject ?subject .
           ?subject foaf:name ?subjectLabel .
         }GROUP BY ?subject ?subjectLabel ORDER BY desc(?c)
@@ -171,5 +174,28 @@ async function fetchSubjectList() {
   );
   return subjectMap;
 }
+async function keywardSearch(keywards) {
+  const createKeywardQuery = (keyward) => `
+    {
+    ?book dc:title/rdf:value ?title .
+    FILTER(regex(?title, "${keyward}", "i"))
+  }UNION{
+    {
+      SELECT DISTINCT ?book (group_concat(distinct ?creator ; separator = ", ") AS ?creators) WHERE {
+        ?book dc:creator ?creator .
+      }GROUP BY ?book
+    }
+    FILTER(regex(?creators, "${keyward}", "i"))
+  }UNION{
+    ?book dcterms:subject/foaf:name ?subjectLabel .
+    FILTER(regex(?subjectLabel, "${keyward}", "i"))
+  }`;
+  const query = `
+SELECT DISTINCT ?book WHERE{
+${keywards.map((keyward) => createKeywardQuery(keyward)).join('')}
+}
+  `;
+  return serach(query);
+}
 
-export { serach, fetchSubjectList };
+export { serach, fetchSubjectList, keywardSearch };
