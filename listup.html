@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script type="module">
-      import { serach, fetchSubjectList } from './src/search.js';
+      import { serach, fetchSubjectList, keywardSearch } from './src/search.js';
       const defaultSerachQuery = `SELECT DISTINCT ?book WHERE { }`;
       const serachTemplateQuery = `SELECT DISTINCT ?book WHERE {%query%}`;
       window.addEventListener('DOMContentLoaded', async () => {
@@ -86,6 +86,23 @@
           .getElementById('searchKeywardButton')
           .addEventListener('click', () => {
             //keywardの取得
+            const keywards = document
+              .getElementById('keywardInput')
+              .value.split(/[\u{20}\u{3000}]/u);
+            keywardSearch(keywards).then((res) => {
+              //skelton
+              const skeletonImages =
+                document.querySelectorAll('.image.is-skeleton');
+              skeletonImages.forEach((container) => {
+                const img = container.querySelector('img');
+                console.log(img);
+                if (img) {
+                  img.addEventListener('load', () => {
+                    container.classList.remove('is-skeleton');
+                  });
+                }
+              });
+            });
           });
       });
     </script>
@@ -106,19 +123,26 @@
       .cell {
         max-width: 18rem;
       }
+      #serachResult {
+        margin-top: 1rem;
+        border-top: 1px solid #333;
+      }
     </style>
   </head>
   <body>
+    <header class="columns is-mobile">
+      <div class="column is-four-fifths is-size-4">
+        古崎研究室 蔵書検索システム
+      </div>
+      <div class="column">Auto</div>
+      <div class="column">Auto</div>
+    </header>
     <main>
       <div>
         <div class="columns is-mobile">
-          <div class="column is-four-fifths">is-four-fifths</div>
-          <div class="column">Auto</div>
-          <div class="column">Auto</div>
-        </div>
-        <div class="columns is-mobile">
           <div class="column is-9 is-offset-1">
             <input
+              id="keywardInput"
               class="input is-rounded"
               type="text"
               placeholder="keyward検索（タイトルと著者の部分一致検索）"
@@ -133,8 +157,18 @@
         <details style="overflow: visible; height: auto">
           <summary>詳細検索</summary>
           <div class="columns is-mobile">
-            <div class="column is-four-fifths">
-              <div id="subjectSelectArea" class="select"></div>
+            <div class="column select column is-2" id="subjectSelectArea"></div>
+          </div>
+          <div class="columns is-mobile">
+            <div class="column">
+              <details>
+                <summary>SPARQL</summary>
+                <textarea
+                  id="searchQuery"
+                  class="textarea"
+                  placeholder="検索クエリを入力してください。SELECTで?bookを指定してください"
+                ></textarea>
+              </details>
             </div>
           </div>
           <div class="columns is-mobile">
@@ -143,22 +177,13 @@
             </div>
           </div>
         </details>
-        <div>
-          <details>
-            <summary>sparql検索</summary>
-            <textarea
-              id="searchQuery"
-              class="textarea"
-              placeholder="検索クエリを入力してください。SELECTで?bookを指定してください"
-            ></textarea>
-          </details>
-        </div>
       </div>
       <!-- 検索結果 -->
       <div id="serachResult">
-        <div>hoghoge</div>
+        <div id="searchResNum"></div>
         <div id="bookList" class="grid is-col-min-11"></div>
       </div>
     </main>
+    <footer></footer>
   </body>
 </html>
