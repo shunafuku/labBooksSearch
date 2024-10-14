@@ -44,51 +44,6 @@ async function fetchBookList(serachQuery) {
   return fetchSparql(endpointUrl, query);
 }
 
-function createCardsHtml(books) {
-  const articles = Array.from(books)
-    .map(([key, value]) => {
-      const bookImgUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${value.get(
-        'isbn'
-      )}.jpg`;
-
-      const bookFigureTemplate = `
-      <figure class="image is-4by3 is-skeleton">
-          <img
-            src="${bookImgUrl}"
-            alt="${
-              value.get('title') == ''
-                ? value.get('title')
-                : value.get('bookIri')
-            }: 書影"
-          />
-        </figure>
-      `;
-      const bookCardTemplate = `
-    <article class="cell card">
-      <div class="card-image">
-        ${bookFigureTemplate}
-      </div>
-      <div class="card-content">
-        <p class="title is-5">${
-          value.get('title') != '' ? value.get('title') : value.get('bookIri')
-        }</p>
-        <p class="subtitle is-6">${value.get('creators')}</p>
-        <div class="content is-size-7">
-          ${Array.from(value.get('subjects'))
-            .map(
-              ([iri, label]) =>
-                `<a href="${iri}" target="_blank" rel="noopener noreferrer"><span class="tag">${label}</span></a>`
-            )
-            .join('')}
-        </div>
-      </div>
-    </article>
-  `;
-      return bookCardTemplate;
-    })
-    .join('');
-  return articles;
-}
 function convertBookMapFromSparqlRes(res) {
   const books = new Map();
   // console.log('res');
@@ -129,20 +84,14 @@ function convertBookMapFromSparqlRes(res) {
 }
 
 async function serach(serachQuery) {
-  await fetchBookList(serachQuery).then((res) => {
+  return await fetchBookList(serachQuery).then((res) => {
     console.log('sparql result received');
     console.log(res);
     const books = convertBookMapFromSparqlRes(res);
     console.log('books');
     console.log(books);
 
-    //htmlを生成し、domに書き込み
-    document.getElementById(
-      'searchResNum'
-    ).innerHTML = `<p>取得件数：${books.size}</p>`;
-    const articles = createCardsHtml(books);
-    console.log('start write');
-    document.getElementById('bookList').innerHTML = articles;
+    return books;
   });
 }
 
@@ -198,4 +147,62 @@ ${keywards.map((keyward) => createKeywardQuery(keyward)).join('')}
   return serach(query);
 }
 
-export { serach, fetchSubjectList, keywardSearch };
+async function advancedSearch(titleKeywards, creatorKeywards, subjectIri) {
+  // title
+  const needTitleQuery = titleKeywards.length > 0;
+  console.log(titleKeywards);
+  const titleFilterQuery = titleKeywards
+    .map((title) => {
+      console.log(title);
+      return `FILTER(regex(?title, "${title}", "i"))`;
+    })
+    .join('');
+
+  // creator
+  const needCreatoreQuery = creatorKeywards.length > 0;
+  console.log(titleKeywards);
+  const creatorFilterQuery = creatorKeywards
+    .map((creator) => {
+      console.log(creator);
+      return `FILTER(regex(?creators, "${creator}", "i"))`;
+    })
+    .join('');
+
+  // subject
+  const needSubjectQuery = subjectIri != '';
+
+  let whereStr = '';
+  if (needTitleQuery) {
+    whereStr += `?book dc:title/rdf:value ?title . ${titleFilterQuery}`;
+  }
+  if (needCreatoreQuery) {
+    whereStr += `{
+      SELECT DISTINCT ?book (group_concat(distinct ?creator ; separator = ", ") AS ?creators) WHERE {
+        ?book dc:creator ?creator .
+      }GROUP BY ?book
+    }
+    ${creatorFilterQuery}`;
+  }
+  if (needSubjectQuery) {
+    whereStr += `?book dcterms:subject <${subjectIri}>`;
+  }
+  const query = `SELECT DISTINCT ?book WHERE{
+    ${whereStr}
+  }`;
+  console.log(needTitleQuery);
+  console.log(titleFilterQuery);
+  console.log(needCreatoreQuery);
+  console.log(creatorFilterQuery);
+  console.log(needSubjectQuery);
+  console.log(query);
+
+  return serach(query);
+}
+
+export {
+  fetchSubjectList,
+  serach,
+  keywardSearch,
+  advancedSearch,
+  fetchBookList,
+};
