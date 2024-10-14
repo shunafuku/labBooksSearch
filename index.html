@@ -3,12 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pico版 古崎研究室蔵書検索システム</title>
+    <title>古崎研究室蔵書検索システム</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
     <style>
+      body {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        grid-template-columns: 100%;
+        min-height: 100vh;
+      }
+      header {
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+      }
       main {
         margin: 0 1rem;
       }
@@ -218,7 +229,9 @@
     </script>
   </head>
   <body>
-    <header class="container-fluid">...</header>
+    <header class="container-fluid">
+      <h2>古崎研究室蔵書検索</h2>
+    </header>
     <main>
       <!-- keyward検索 -->
       <div class="search-area">
@@ -281,6 +294,10 @@
         <div id="booksCards" class="cards-area"></div>
       </div>
     </main>
-    <footer>...</footer>
+    <footer>
+      <small
+        >このサイトで検索している知識グラフは、国立国会図書館サーチのAPIから取得したデータを元に作成しています。</small
+      >
+    </footer>
   </body>
 </html>
