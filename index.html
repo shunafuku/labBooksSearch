@@ -8,30 +8,277 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     />
+    <style>
+      main {
+        margin: 0 1rem;
+      }
+      /* keyward検索エリア */
+      /* .keyward-search-area fieldset {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        grid-column-gap: 0px;
+        grid-row-gap: 0px;
+        column-gap: 1rem;
+        height: 5rem;
+      }
+      .keyward-search-area fieldset .keyward-search-value {
+        grid-area: 1 / 1 / 2 / 5;
+      }
+      .keyward-search-area fieldset .keyward-search-submit {
+        grid-area: 1 / 5 / 2 / 6;
+      } */
+      /* 詳細検索エリア */
+      /* .advanced-search-details {
+        height: fit-content;
+      } */
+      .advanced-search-area {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        grid-column-gap: 0px;
+        grid-row-gap: 0px;
+        column-gap: 1rem;
+        grid-template-areas:
+          'title title title title title'
+          'creator creator creator creator creator'
+          'subject subject subject subject subject'
+          '....... ....... ....... ....... submitButton';
+      }
+      .advanced-search-title {
+        grid-area: title;
+      }
+      .advanced-search-creator {
+        grid-area: creator;
+      }
+      .advanced-search-area select {
+        grid-area: subject;
+      }
+      .advanced-search-area .advanced-search-submit {
+        grid-area: submitButton;
+      }
+      /* 検索結果表示エリア */
+      .cards-area {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: stretch;
+        align-content: flex-start;
+        gap: 0.5rem;
+      }
+      .card {
+        flex: 0 0 24%;
+        max-width: 24rem;
+        min-width: 240px;
+      }
+      .card-img-area {
+        text-align: center;
+        margin: 0.5rem;
+      }
+      .card-img-area img {
+        height: 12rem;
+        object-fit: contain;
+      }
+      .book-creators {
+        font-size: 0.8rem;
+      }
+    </style>
+    <script type="module">
+      import {
+        serach,
+        fetchSubjectList,
+        keywardSearch,
+        advancedSearch,
+      } from './src/search.js';
+      document.addEventListener('DOMContentLoaded', async () => {
+        //subjectのリスト
+        const subjectList = await fetchSubjectList();
+        //htmlに変換
+        const select = document.getElementById('subjectsList');
+        select.setAttribute('aria-label', 'Select');
+        select.name = 'select';
+        (() => {
+          const option = document.createElement('option');
+          option.value = ''; // Set the key as the value
+          option.textContent = '主題で絞り込む'; // Use the value as the display text
+          option.selected = true;
+          select.appendChild(option);
+        })();
+        subjectList.forEach((value, key) => {
+          const option = document.createElement('option');
+          option.value = key; // Set the key as the value
+          option.textContent = value; // Use the value as the display text
+          select.appendChild(option);
+        });
+        const subjectSelectArea = document.getElementById('advancedSearchForm');
+        if (subjectSelectArea) {
+          subjectSelectArea.prepend(select);
+        } else {
+          console.error('Element with id "advancedSearchForm" not found');
+        }
+
+        //keyward検索ボタンが押された時の処理
+        const keywardSearchForm = document.getElementById('keywardSearchForm');
+        keywardSearchForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          // フォームデータを取得
+          const form = event.target;
+          const formData = new FormData(form);
+          // フォームデータをオブジェクトに変換
+          const data = Object.fromEntries(formData.entries());
+          // console.log(data['search']);
+          // keyward検索実行
+          const booksMap = await keywardSearch(
+            data['search'].split(/[\u{20}\u{3000}]/u)
+          );
+          const articles = createCardsHtml(booksMap); // htmlに変換
+          writeSearchRes(booksMap, articles);
+        });
+        //詳細検索ボタンが押された時の処理
+        const advancedSearchForm =
+          document.getElementById('advancedSearchForm');
+        advancedSearchForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          // フォームデータを取得
+          const form = event.target;
+          const formData = new FormData(form);
+          console.log(form);
+          // フォームデータをオブジェクトに変換
+          const data = Object.fromEntries(formData.entries());
+          console.log(data);
+          const titleKeywards = data['title']
+            .split(/[\u{20}\u{3000}]/u)
+            .filter((x) => x != '');
+          const creatorKeywards = data['creator']
+            .split(/[\u{20}\u{3000}]/u)
+            .filter((x) => x != '');
+          const subjectIri = data['select'];
+          console.log(creatorKeywards);
+          console.log(`${titleKeywards}, ${creatorKeywards}, ${subjectIri}`);
+          // console.log(data['search']);
+          // advanced検索実行
+          const booksMap = await advancedSearch(
+            titleKeywards,
+            creatorKeywards,
+            subjectIri
+          );
+          const articles = createCardsHtml(booksMap); // htmlに変換
+          writeSearchRes(booksMap, articles);
+        });
+      });
+      function createCardsHtml(books) {
+        const articles = Array.from(books)
+          .map(([key, value]) => {
+            const bookImgUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${value.get(
+              'isbn'
+            )}.jpg`;
+            const noimgPath = './no_img.svg';
+            const bookCardTemplate = `
+            <article class="card">
+              <div class="container-fluid card-content">
+                <figure class="container-fluid card-img-area">
+                  <img src="${bookImgUrl}" alt="${
+              value.get('title') == ''
+                ? value.get('title')
+                : value.get('bookIri')
+            }: 書影" onerror="this.src='${noimgPath}';"/>
+                </figure>
+                <dl>
+                  <dt class="book-title">
+                    <b>${
+                      value.get('title') != ''
+                        ? value.get('title')
+                        : value.get('bookIri')
+                    }</b>
+                  </dt>
+                  <dd class="book-creators">${value.get('creators')}</dd>
+                </dl>
+              </div>
+              <footer>${Array.from(value.get('subjects'))
+                .map(
+                  ([iri, label]) =>
+                    `<small><a href="${iri}" target="_blank" rel="noopener noreferrer" ><span>${label}</span></a></small>`
+                )
+                .join(', ')}</footer>
+            </article>
+            `;
+            return bookCardTemplate;
+          })
+          .join('');
+        return articles;
+      }
+      function writeSearchRes(booksMap, articles) {
+        serachResNum;
+        document.getElementById(
+          'serachResNum'
+        ).innerHTML = `検索件数：${booksMap.size}`; //htmlの書き込み
+        document.getElementById('booksCards').innerHTML = articles; //htmlの書き込み
+      }
+    </script>
   </head>
   <body>
-    <header>...</header>
+    <header class="container-fluid">...</header>
     <main>
-      <div class="grid">
-        <div>
-          <article>
-            <header>Header</header>
-            <img
-              src="https://ndlsearch.ndl.go.jp/thumbnail/9784299046741.jpg"
-              alt="http://hozo.jp/books/entity/9784299046741/1: 書影"
+      <!-- keyward検索 -->
+      <div class="search-area">
+        <form id="keywardSearchForm" class="keyward-search-area" role="search">
+          <fieldset role="group">
+            <input
+              id="keywardInput"
+              class="keyward-search-value"
+              type="search"
+              name="search"
+              placeholder="Search"
+              aria-label="Search"
             />
-            <footer>Footer</footer>
-          </article>
-        </div>
-        <div>
-          <article>
-            <header>Header</header>
-            Body
-            <footer>Footer</footer>
-          </article>
-        </div>
-        <div>3</div>
-        <div>4</div>
+            <input class="keyward-search-submit" type="submit" value="検索" />
+          </fieldset>
+        </form>
+      </div>
+      <!-- 詳細検索 -->
+      <details class="advanced-search-details">
+        <summary role="button" class="outline contrast">詳細検索</summary>
+        <form id="advancedSearchForm" class="advanced-search-area">
+          <input
+            id="titleInput"
+            class="advanced-search-title"
+            type="search"
+            name="title"
+            placeholder="タイトルで絞り込む"
+            aria-label="titleAdvancedSearch"
+          />
+          <input
+            id="creatorInput"
+            class="advanced-search-creator"
+            type="search"
+            name="creator"
+            placeholder="著者で絞り込む"
+            aria-label="creatorAdvancedSearch"
+          />
+          <select
+            name="subject"
+            id="subjectsList"
+            class="advanced-search"
+          ></select>
+
+          <input class="advanced-search-submit" type="submit" value="検索" />
+        </form>
+      </details>
+      <!-- SPARQL検索 -->
+      <details>
+        <summary>SPARQL検索</summary>
+        <textarea name="sparql" aria-label="book search sparql"></textarea>
+      </details>
+
+      <hr />
+      <!-- 検索結果 -->
+      <div id="searchResDiv">
+        <hgroup>
+          <h1>検索結果</h1>
+          <p id="serachResNum">検索件数：</p>
+        </hgroup>
+        <div id="booksCards" class="cards-area"></div>
       </div>
     </main>
     <footer>...</footer>
