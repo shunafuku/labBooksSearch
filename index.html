@@ -49,6 +49,13 @@
       .advanced-search-area .advanced-search-submit {
         grid-area: submitButton;
       }
+      /* sparql */
+      .sparql-search-area {
+      }
+      .sparql-search-area textarea {
+        height: 12rem;
+        font-size: 0.8rem;
+      }
       /* 検索結果表示エリア */
       .cards-area {
         width: 100%;
@@ -277,9 +284,13 @@
       </details>
       <!-- SPARQL検索 -->
       <details>
-        <summary>SPARQL検索</summary>
-        <form id="sparqlSearchForm">
-          <textarea name="sparql" aria-label="book search sparql"></textarea>
+        <summary role="button" class="outline secondary">SPARQL検索</summary>
+        <form id="sparqlSearchForm" class="sparql-search-area">
+          <textarea name="sparql" aria-label="book search sparql">
+SELECT DISTINCT ?book WHERE {
+  ?book <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://hozo.jp/books/class/book> .
+}</textarea
+          >
           <input class="sparql-search-submit" type="submit" value="検索" />
         </form>
       </details>
