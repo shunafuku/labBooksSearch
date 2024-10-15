@@ -7,7 +7,7 @@ async function fetchTest() {
   return fetchSparql(endpointUrl, query);
 }
 
-async function fetchBookList(serachQuery) {
+async function fetchBookList(searchQuery) {
   const endpointUrl = `https://lod.hozo.jp/fuseki/labBook/sparql`;
 
   const query = `
@@ -23,7 +23,7 @@ async function fetchBookList(serachQuery) {
           #BIND(<http://hozo.jp/books/entity/9784501540104/1> as ?book)
           ?book rdfs:subClassOf <http://hozo.jp/books/class/book> .
           {
-            ${serachQuery}
+            ${searchQuery}
           }
           OPTIONAL{?book dc:creator ?creator .}
         }GROUP BY ?book
@@ -83,8 +83,8 @@ function convertBookMapFromSparqlRes(res) {
   return books;
 }
 
-async function serach(serachQuery) {
-  return await fetchBookList(serachQuery).then((res) => {
+async function search(searchQuery) {
+  return await fetchBookList(searchQuery).then((res) => {
     console.log('sparql result received');
     console.log(res);
     const books = convertBookMapFromSparqlRes(res);
@@ -144,7 +144,7 @@ SELECT DISTINCT ?book WHERE{
 ${keywards.map((keyward) => createKeywardQuery(keyward)).join('')}
 }
   `;
-  return serach(query);
+  return search(query);
 }
 
 async function advancedSearch(titleKeywards, creatorKeywards, subjectIri) {
@@ -196,12 +196,12 @@ async function advancedSearch(titleKeywards, creatorKeywards, subjectIri) {
   console.log(needSubjectQuery);
   console.log(query);
 
-  return serach(query);
+  return search(query);
 }
 
 export {
   fetchSubjectList,
-  serach,
+  search,
   keywardSearch,
   advancedSearch,
   fetchBookList,
