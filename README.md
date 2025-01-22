@@ -1,4 +1,4 @@
-# labBooksSearch
+# 研究室蔵書検索システム
 ## 概要
 [研究室蔵書管理システム](https://github.com/shunafuku/labBooksManagement)で作成した知識グラフの書籍情報を検索することができるサイトです。以下は、古崎研究室の蔵書リストから作成した知識グラフを検索できるページです。
 
